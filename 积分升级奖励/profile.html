@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            --level-1-bg: #FFFFFF;
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.08);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.12);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: var(--level-1-bg);
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            background-color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+
+        .profile-header {
+            height: 200px;
+            background-color: var(--primary-color);
+            padding: 44px 20px 20px;
+            color: white;
+            position: relative;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: var(--shadow-medium);
+            margin-bottom: 12px;
+        }
+
+        .content-area {
+            position: absolute;
+            top: 200px;
+            bottom: 83px;
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            background-color: var(--level-1-bg);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+        }
+
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            width: 375px;
+            z-index: 10;
+            box-shadow: 0 -1px 10px rgba(0,0,0,0.05);
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+
+        .sign-in-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin: -60px 20px 20px;
+            box-shadow: var(--shadow-medium);
+            position: relative;
+            z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sign-in-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .sign-in-btn i {
+            margin-right: 4px;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 20px;
+            background-color: var(--level-1-bg);
+        }
+
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .grid-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            color: white;
+            font-size: 20px;
+        }
+
+        .grid-text {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .asset-section {
+            background-color: var(--level-1-bg);
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-section {
+            background-color: var(--level-1-bg);
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .section-header .more {
+            color: #999;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        .order-icons {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        .order-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .order-icon {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 6px;
+            color: #666;
+        }
+
+        .order-icon-text {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            text-align: center;
+        }
+
+        .asset-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .asset-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .asset-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .level-module {
+            background-color: var(--level-1-bg);
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .level-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .level-progress {
+            height: 6px;
+            background-color: #f0f0f0;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        
+        .level-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- 个人信息头部 -->
+        <div class="profile-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="头像" class="avatar">
+                    <div class="ml-4">
+                        <div class="text-lg font-bold">张三</div>
+                        <div class="text-sm opacity-90 mt-1">ID: 888888</div>
+                    </div>
+                </div>
+                <button class="sign-in-btn">
+                    <i class="fas fa-calendar-check"></i>
+                    签到
+                </button>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <!-- 资产信息 -->
+            <div class="asset-section">
+                <div class="asset-grid">
+                    <div class="asset-item">
+                        <div class="asset-value">7539.98</div>
+                        <div class="asset-label">零钱</div>
+                    </div>
+                    <div class="asset-item">
+                        <div class="asset-value">100528.78</div>
+                        <div class="asset-label">购物券</div>
+                    </div>
+                    <div class="asset-item">
+                        <div class="asset-value">0</div>
+                        <div class="asset-label">优惠券</div>
+                    </div>
+                    <div class="asset-item">
+                        <div class="asset-value">0.00</div>
+                        <div class="asset-label">商城券</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 商城订单 -->
+            <div class="order-section">
+                <div class="section-header">
+                    <span>商城订单</span>
+                    <span class="more">全部订单 <i class="fas fa-chevron-right text-xs"></i></span>
+                </div>
+                <div class="order-icons">
+                    <div class="order-icon-item">
+                        <div class="order-icon">
+                            <i class="fas fa-yen-sign"></i>
+                        </div>
+                        <div class="order-icon-text">待付款</div>
+                    </div>
+                    <div class="order-icon-item">
+                        <div class="order-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="order-icon-text">待发货</div>
+                    </div>
+                    <div class="order-icon-item">
+                        <div class="order-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="order-icon-text">待收货</div>
+                    </div>
+                    <div class="order-icon-item">
+                        <div class="order-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <div class="order-icon-text">待评价</div>
+                        <span class="badge">1</span>
+                    </div>
+                    <div class="order-icon-item">
+                        <div class="order-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div class="order-icon-text">售后中</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户等级模块 -->
+            <div class="level-module">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center">
+                        <div class="level-badge mr-3">V4</div>
+                        <div>
+                            <div class="font-medium">高级会员</div>
+                            <div class="text-xs text-gray-500 mt-1">距离升级V5还差25%</div>
+                        </div>
+                    </div>
+                    <button class="text-primary text-sm flex items-center" onclick="window.location.href='level.html'">
+                        查看详情 <i class="fas fa-chevron-right text-xs ml-1"></i>
+                    </button>
+                </div>
+                
+                <div class="level-progress">
+                    <div class="level-progress-fill" style="width: 75%;"></div>
+                </div>
+                
+                <div class="flex items-center justify-between mt-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-snowflake text-primary mr-2"></i>
+                        <span class="text-sm">冻结积分</span>
+                    </div>
+                    <div class="font-bold">320,000</div>
+                </div>
+            </div>
+
+            <!-- 网格菜单 -->
+            <div class="grid-menu">
+                <div class="grid-item" onclick="window.location.href='level.html'">
+                    <div class="grid-icon" style="background-color: var(--primary-color)">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="grid-text">身份等级</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon" style="background-color: #4CAF50">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="grid-text">补贴明细</div>
+                </div>
+                <div class="grid-item">
+                    <div class="grid-icon" style="background-color: #9C27B0">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <div class="grid-text">推广奖励</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-coins text-lg mb-1"></i>
+                <span>积分</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-user text-lg mb-1 text-primary"></i>
+                <span class="text-primary">我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分释放进度</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.08);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.12);
+            
+            /* 卡片间距 */
+            --card-gap: 16px;
+            
+            /* 10个从浅到深的颜色 */
+            --level-color-1: #FFE8D6; /* 最浅 */
+            --level-color-2: #FFD5B3;
+            --level-color-3: #FFBE8A;
+            --level-color-4: #FFA75F;
+            --level-color-5: #FF8724; /* 主色 */
+            --level-color-6: #F67D20;
+            --level-color-7: #E07016;
+            --level-color-8: #CC6410;
+            --level-color-9: #B85809;
+            --level-color-10: #A24E00; /* 最深 */
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: var(--level-1-bg);
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 1px 10px rgba(0,0,0,0.05);
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 -1px 10px rgba(0,0,0,0.05);
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        /* 卡片使用第一级背景，带投影 */
+        .bg-white {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            border-radius: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: var(--card-gap);
+        }
+        .bg-white:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-dark);
+        }
+        
+        /* 文字颜色 */
+        .text-primary {
+            color: var(--primary-color);
+        }
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        /* 进度条样式 */
+        .progress-container {
+            height: 8px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-color), var(--level-color-8));
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 0 8px rgba(255, 135, 36, 0.5);
+        }
+        
+        .progress-tab {
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .progress-tab.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+        
+        .progress-period {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .progress-period-active {
+            border-left: 4px solid var(--primary-color);
+            background-color: var(--primary-light);
+            padding-left: 12px;
+            border-radius: 0 10px 10px 0;
+            position: relative;
+        }
+        
+        .progress-period-active::before {
+            content: "";
+            position: absolute;
+            left: -4px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary-color);
+            animation: pulseEffect 2s infinite;
+        }
+        
+        .separator {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 8px 0;
+        }
+        
+        /* 添加脉冲动画效果 */
+        @keyframes pulseEffect {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">积分释放进度</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="px-4 pt-2">
+                <!-- 顶部积分卡片 -->
+                <div class="rounded-xl text-white mb-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); padding: 20px; box-shadow: 0 6px 16px rgba(224, 96, 0, 0.15);">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">当前积分状态</h2>
+                        <div class="text-xs opacity-80">更新时间：2023-06-15</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-black bg-opacity-10 rounded-lg p-3">
+                            <p class="text-sm mb-1 opacity-90">累计获得积分</p>
+                            <p class="text-xl font-bold">1,568.50</p>
+                        </div>
+                        <div class="bg-black bg-opacity-10 rounded-lg p-3">
+                            <p class="text-sm mb-1 opacity-90">已释放积分</p>
+                            <p class="text-xl font-bold">968.20</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-1 text-sm">
+                            <span>总释放进度</span>
+                            <span>61.7%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-fill" style="width: 61.7%; background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,1)); box-shadow: 0 0 8px rgba(255,255,255,0.6);"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm">
+                        <span>未释放积分：600.30</span>
+                        <span>已获得购物券：¥4,841.00</span>
+                    </div>
+                </div>
+                
+                <!-- 积分类型选择标签 -->
+                <div class="mb-5 overflow-x-auto -mx-4 px-4">
+                    <div class="flex space-x-3 w-max">
+                        <div class="progress-tab active">
+                            全部
+                        </div>
+                        <div class="progress-tab">
+                            直推/间推
+                        </div>
+                        <div class="progress-tab">
+                            招商
+                        </div>
+                        <div class="progress-tab">
+                            区域
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 积分释放说明 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-info-circle text-primary mr-2 text-xl"></i>
+                        <h2 class="font-bold text-lg text-primary">积分释放说明</h2>
+                    </div>
+                    <p class="text-gray-600 text-sm">
+                        您获得的积分将在36-40期(共5期)内均匀释放，每期约释放20%，每期释放时长为30天。
+                        <br>每获得1积分，最终将转化为5元购物券。
+                    </p>
+                </div>
+                
+                <!-- 当前释放期数 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-primary flex items-center">
+                            <i class="fas fa-fire text-primary mr-2"></i>
+                            当前释放期数
+                        </h3>
+                        <a href="#" class="text-xs text-primary">查看全部 ></a>
+                    </div>
+                    
+                    <div class="progress-period-active p-3 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">第38期</span>
+                            <span class="text-xs text-gray-600">进行中</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">本期释放积分</p>
+                                <p class="font-bold text-primary">186.25</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">转换购物券</p>
+                                <p class="font-bold text-primary">¥931.25</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="flex justify-between mb-1 text-xs">
+                                <span>释放进度</span>
+                                <span>16/30天 (53.3%)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill" style="width: 53.3%"></div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500">
+                            释放时间：2023-06-01 ~ 2023-06-30
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 历史释放期数 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-primary flex items-center">
+                            <i class="fas fa-history text-primary mr-2"></i>
+                            历史释放记录
+                        </h3>
+                    </div>
+                    
+                    <div class="progress-period p-3 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">第37期</span>
+                            <span class="text-xs text-green-600">已完成</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">释放积分</p>
+                                <p class="font-bold">186.25</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">转换购物券</p>
+                                <p class="font-bold">¥931.25</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="flex justify-between mb-1 text-xs">
+                                <span>释放进度</span>
+                                <span>已完成 (100%)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500">
+                            释放时间：2023-05-01 ~ 2023-05-31
+                        </p>
+                    </div>
+                    
+                    <div class="separator"></div>
+                    
+                    <div class="progress-period p-3 mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">第36期</span>
+                            <span class="text-xs text-green-600">已完成</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">释放积分</p>
+                                <p class="font-bold">186.25</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">转换购物券</p>
+                                <p class="font-bold">¥931.25</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="flex justify-between mb-1 text-xs">
+                                <span>释放进度</span>
+                                <span>已完成 (100%)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500">
+                            释放时间：2023-04-01 ~ 2023-04-30
+                        </p>
+                    </div>
+                    
+                    <div class="separator"></div>
+                    
+                    <div class="flex justify-center">
+                        <button class="text-primary text-sm flex items-center">
+                            查看更多记录 <i class="fas fa-chevron-down ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 标签页切换
+        document.querySelectorAll('.progress-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.progress-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                // 这里可以添加实际的内容切换逻辑
+            });
+        });
+    </script>
+</body>
+</html> 

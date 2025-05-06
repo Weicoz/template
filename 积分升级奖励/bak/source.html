@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分来源明细</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: white;
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background-color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: #1e88e5;
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+        .source-stats {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">积分来源明细</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="p-4">
+                <!-- 积分总览 -->
+                <div class="bg-white rounded-lg p-4 mb-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="text-gray-500">积分总数</div>
+                        <div class="text-xl font-bold">12,580</div>
+                    </div>
+                    
+                    <!-- 图表容器 -->
+                    <div class="chart-container">
+                        <!-- 这里放置饼图，使用HTML和CSS简单模拟 -->
+                        <div class="flex justify-center items-center h-full">
+                            <div class="relative w-40 h-40">
+                                <div class="absolute inset-0 rounded-full bg-blue-500" style="clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 69%, 50% 50%);"></div>
+                                <div class="absolute inset-0 rounded-full bg-green-500" style="clip-path: polygon(50% 50%, 100% 69%, 69% 100%, 31% 100%, 50% 50%);"></div>
+                                <div class="absolute inset-0 rounded-full bg-yellow-500" style="clip-path: polygon(50% 50%, 31% 100%, 0% 100%, 0% 31%, 50% 50%);"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center">
+                                        <div class="text-center">
+                                            <div class="text-gray-500 text-xs">总积分</div>
+                                            <div class="font-bold">12,580</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图例 -->
+                    <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                        <div>
+                            <div class="flex items-center justify-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                                <span>积分奖励</span>
+                            </div>
+                            <div class="font-medium">68.8%</div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                                <span>直推奖励</span>
+                            </div>
+                            <div class="font-medium">19.3%</div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-center">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                                <span>招商奖励</span>
+                            </div>
+                            <div class="font-medium">11.9%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 积分来源详情 -->
+                <div class="bg-white rounded-lg p-4 mb-5">
+                    <h2 class="font-bold mb-4">积分来源详情</h2>
+                    
+                    <div class="flex items-center justify-between p-2 mb-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">积分奖励</div>
+                                <div class="text-xs text-gray-500">购买商品获得的积分</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold">8,650</div>
+                            <div class="text-xs text-gray-500">占比 68.8%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 ml-12 mb-5 border-l-2 border-blue-200">
+                        <div class="text-sm text-gray-600 mb-2">
+                            <i class="fas fa-info-circle text-blue-500 mr-1"></i> 积分奖励说明
+                        </div>
+                        <div class="text-xs text-gray-500 mb-3">
+                            用户购买商品时，系统将根据商品价格的一定比例返还积分。例如，购买100元商品可能返还10积分，这些积分通过36-40期慢慢释放后可获得50元购物券。
+                        </div>
+                        <button class="text-blue-500 text-xs flex items-center">
+                            查看积分奖励明细 <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-2 mb-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">直推奖励</div>
+                                <div class="text-xs text-gray-500">推荐好友购买获得的积分</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold">2,430</div>
+                            <div class="text-xs text-gray-500">占比 19.3%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 ml-12 mb-5 border-l-2 border-green-200">
+                        <div class="text-sm text-gray-600 mb-2">
+                            <i class="fas fa-info-circle text-green-500 mr-1"></i> 直推奖励说明
+                        </div>
+                        <div class="text-xs text-gray-500 mb-3">
+                            当您推荐的好友下单购买商品时，您将获得该好友所获积分的10%作为直推奖励，这些积分也将通过36-40期慢慢释放为5倍价值的购物券。
+                        </div>
+                        <button class="text-green-500 text-xs flex items-center">
+                            查看直推奖励明细 <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-2 mb-4 bg-yellow-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">招商奖励</div>
+                                <div class="text-xs text-gray-500">招商商家获得的积分</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold">1,500</div>
+                            <div class="text-xs text-gray-500">占比 11.9%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 ml-12 border-l-2 border-yellow-200">
+                        <div class="text-sm text-gray-600 mb-2">
+                            <i class="fas fa-info-circle text-yellow-500 mr-1"></i> 招商奖励说明
+                        </div>
+                        <div class="text-xs text-gray-500 mb-3">
+                            当您招商的商家在平台销售产品时，您将获得该商家流水让利的10%作为招商奖励，这些积分也将通过36-40期慢慢释放为5倍价值的购物券。
+                        </div>
+                        <button class="text-yellow-500 text-xs flex items-center">
+                            查看招商奖励明细 <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 最近奖励记录 -->
+                <div class="bg-white rounded-lg p-4 mb-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold">最近奖励记录</h2>
+                        <span class="text-blue-500 text-sm">查看全部 <i class="fas fa-chevron-right text-xs"></i></span>
+                    </div>
+                    
+                    <div class="border-b pb-3 mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="font-medium">购买商品获得积分</div>
+                            <div class="text-green-500 font-bold">+580</div>
+                        </div>
+                        <div class="text-xs text-gray-500">2023-07-28 14:25</div>
+                    </div>
+                    
+                    <div class="border-b pb-3 mb-3">
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="font-medium">直推奖励</div>
+                            <div class="text-green-500 font-bold">+120</div>
+                        </div>
+                        <div class="text-xs text-gray-500">2023-07-20 09:15</div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="font-medium">招商奖励</div>
+                            <div class="text-green-500 font-bold">+350</div>
+                        </div>
+                        <div class="text-xs text-gray-500">2023-07-15 16:30</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1"></i>
+                <span>积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

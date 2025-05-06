@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分规则</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.08);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.12);
+            
+            /* 卡片间距 */
+            --card-gap: 16px;
+            
+            /* 10个从浅到深的颜色 */
+            --level-color-1: #FFE8D6; /* 最浅 */
+            --level-color-2: #FFD5B3;
+            --level-color-3: #FFBE8A;
+            --level-color-4: #FFA75F;
+            --level-color-5: #FF8724; /* 主色 */
+            --level-color-6: #F67D20;
+            --level-color-7: #E07016;
+            --level-color-8: #CC6410;
+            --level-color-9: #B85809;
+            --level-color-10: #A24E00; /* 最深 */
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            background-color: var(--level-1-bg);
+            position: relative;
+        }
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 1px 10px rgba(0,0,0,0.05);
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 -1px 10px rgba(0,0,0,0.05);
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        /* 卡片使用第一级背景，带投影 */
+        .bg-white {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            border-radius: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: var(--card-gap);
+        }
+        .bg-white:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-dark);
+        }
+        
+        /* 文字颜色 */
+        .text-primary {
+            color: var(--primary-color);
+        }
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .rule-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .rule-card {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .accordion-header:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .separator {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">积分规则</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="px-4 pt-4">
+                <!-- 收益说明 -->
+                <div class="rounded-lg mb-5 text-white" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); padding: 20px; box-shadow: 0 6px 16px rgba(224, 96, 0, 0.15);">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-coins mr-2 text-xl"></i>
+                        <h2 class="font-bold text-lg">积分获取与释放规则</h2>
+                    </div>
+                    <p class="text-white text-sm opacity-90">
+                        积分是用户在平台进行推广、招商等活动时的收益体现，可转化为购物券在商城消费。以下是详细规则说明：
+                    </p>
+                </div>
+                
+                <!-- 积分获取规则 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="accordion-header p-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-plus-circle text-primary mr-2"></i>
+                            <h3 class="font-bold text-primary">积分获取规则</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-content pt-2">
+                        <div class="separator"></div>
+                        <div class="mt-3">
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">1</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">直推收益</h4>
+                                    <p class="text-sm text-gray-600">直接推荐新用户注册并消费，可获得该用户消费金额的10%作为积分。</p>
+                                    <div class="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        例：直接推荐的用户消费1000元，您将获得100积分
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">2</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">间推收益</h4>
+                                    <p class="text-sm text-gray-600">您推荐的用户再推荐其他用户消费，您可获得这些用户消费金额的5%作为积分。</p>
+                                    <div class="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        例：您的下级推荐的用户消费1000元，您将获得50积分
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">3</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">招商收益</h4>
+                                    <p class="text-sm text-gray-600">成功引入新商家入驻平台，可获得该商家首年营业额的3%作为积分。</p>
+                                    <div class="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        例：您引入的商家首年营业额为10万元，您将获得3000积分
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="rule-number">4</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">区域代理收益</h4>
+                                    <p class="text-sm text-gray-600">成为区域代理后，该区域内所有用户消费的1%将作为积分奖励给您。</p>
+                                    <div class="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        例：您代理区域内用户月消费总额为10万元，您将获得1000积分
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 积分释放规则 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="accordion-header p-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-unlock-alt text-primary mr-2"></i>
+                            <h3 class="font-bold text-primary">积分释放规则</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-content pt-2">
+                        <div class="separator"></div>
+                        <div class="mt-3">
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">1</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">释放周期</h4>
+                                    <p class="text-sm text-gray-600">获得的积分将通过36-40期(共5期)慢慢释放为购物券，每期约释放20%。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">2</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">释放节奏</h4>
+                                    <p class="text-sm text-gray-600">每期释放时长为30天，释放速度均匀，每天释放约为当期总量的1/30。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="rule-number">3</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">积分价值</h4>
+                                    <p class="text-sm text-gray-600">最终获得的购物券总额是积分的5倍（1积分 = 5元购物券）。</p>
+                                    <div class="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                                        例：获得100积分，最终可转化为500元购物券
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 购物券使用规则 -->
+                <div class="bg-white p-4 mb-5">
+                    <div class="accordion-header p-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-ticket-alt text-primary mr-2"></i>
+                            <h3 class="font-bold text-primary">购物券使用规则</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-content pt-2">
+                        <div class="separator"></div>
+                        <div class="mt-3">
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">1</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">使用范围</h4>
+                                    <p class="text-sm text-gray-600">购物券可在平台商城内所有自营商品使用，部分第三方商品可能不支持。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">2</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">有效期</h4>
+                                    <p class="text-sm text-gray-600">购物券自生成之日起有效期为180天，请在有效期内使用。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start mb-4">
+                                <div class="rule-number">3</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">使用门槛</h4>
+                                    <p class="text-sm text-gray-600">购物券无使用门槛，可抵扣商品全部金额，但不可兑换为现金。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="rule-number">4</div>
+                                <div>
+                                    <h4 class="font-medium mb-1">叠加规则</h4>
+                                    <p class="text-sm text-gray-600">购物券可与平台其他优惠券叠加使用，但不能与特殊促销活动同时使用。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 手风琴效果
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                
+                // 切换内容显示/隐藏
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    header.querySelector('i').classList.remove('fa-minus-circle');
+                    header.querySelector('i').classList.add('fa-plus-circle');
+                } else {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    header.querySelector('i').classList.remove('fa-plus-circle');
+                    header.querySelector('i').classList.add('fa-minus-circle');
+                }
+            });
+        });
+        
+        // 默认展开所有内容
+        document.querySelectorAll('.accordion-content').forEach(content => {
+            content.style.maxHeight = content.scrollHeight + 'px';
+            const icon = content.previousElementSibling.querySelector('i');
+            icon.classList.remove('fa-plus-circle');
+            icon.classList.add('fa-minus-circle');
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分期数明细</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 - 更加精致的阴影层次 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.05), 0 2px 6px rgba(0,0,0,0.06);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04);
+            
+            /* 精致描边颜色 */
+            --border-light: rgba(0,0,0,0.05);
+            --border-medium: rgba(0,0,0,0.08);
+            --border-primary-light: rgba(255,135,36,0.2);
+            --border-primary-medium: rgba(255,135,36,0.3);
+            
+            /* 卡片间距 */
+            --card-gap: 16px;
+            
+            /* 10个从浅到深的颜色 */
+            --level-color-1: #FFE8D6; /* 最浅 */
+            --level-color-2: #FFD5B3;
+            --level-color-3: #FFBE8A;
+            --level-color-4: #FFA75F;
+            --level-color-5: #FF8724; /* 主色 */
+            --level-color-6: #F67D20;
+            --level-color-7: #E07016;
+            --level-color-8: #CC6410;
+            --level-color-9: #B85809;
+            --level-color-10: #A24E00; /* 最深 */
+        }
+        
+        /* Tab切换样式 */
+        .tab-button {
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background-color: rgba(255, 135, 36, 0.05);
+        }
+        
+        .tab-content {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.hidden {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            background-color: var(--level-1-bg);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 10px 20px rgba(0,0,0,0.04);
+        }
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03), 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        /* 增强标签图标效果 */
+        .tab-item i {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .tab-item.active i {
+            color: var(--primary-color);
+            opacity: 1;
+            transition: opacity 0.2s ease, color 0.2s ease;
+        }
+        
+        .tab-item.active i:after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.7;
+            box-shadow: 0 0 4px rgba(255, 135, 36, 0.3);
+        }
+        
+        /* 改进导航栏的返回按钮 */
+        .nav-bar button {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--level-1-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+        }
+        
+        .nav-bar button:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(255,135,36,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 闪光效果 */
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0) 100%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 200%;
+            }
+        }
+        
+        /* 卡片使用第一级背景，带投影 */
+        .bg-white {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            border-radius: 16px;
+            transition: box-shadow 0.2s, border-color 0.2s;
+            margin-bottom: var(--card-gap);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        .bg-white:hover {
+            box-shadow: var(--shadow-dark);
+            border-color: var(--border-medium);
+        }
+        
+        /* 文字颜色和渐变效果 */
+        .text-primary {
+            color: var(--primary-color);
+            position: relative;
+        }
+        
+        .font-bold.text-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .period-card {
+            border-left: 4px solid var(--primary-color);
+            box-shadow: var(--shadow-medium), 0 0 0 1px rgba(255, 135, 36, 0.1);
+        }
+        
+        .period-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        
+        .info-box {
+            background-color: var(--level-3-bg);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
+        }
+        
+        .period-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        /* 列表形式的期数项目 */
+        .period-item {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+        .period-item:last-child {
+            border-bottom: none;
+        }
+        .period-item:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        .period-details {
+            margin-top: 12px;
+            padding-left: 0;
+        }
+        
+        /* 顶部卡片优化 */
+        .rounded-lg.shadow-md[style*="background: linear-gradient"] {
+            box-shadow: 0 8px 20px rgba(224, 96, 0, 0.15), 0 2px 8px rgba(224, 96, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 状态标签优化 */
+        .text-xs.px-2.py-1.bg-orange-50 {
+            border: 1px solid rgba(255, 135, 36, 0.3);
+            box-shadow: 0 1px 3px rgba(255, 135, 36, 0.1);
+        }
+        
+        .text-xs.px-2.py-1.bg-gray-100 {
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+        
+        /* Tab优化 */
+        .flex.bg-white.rounded-lg.overflow-hidden.shadow-md {
+            border: 1px solid var(--border-light);
+        }
+        
+        .tab-button {
+            border-left: 1px solid var(--border-light);
+            border-right: 1px solid var(--border-light);
+        }
+        
+        .tab-button:first-child {
+            border-left: none;
+        }
+        
+        .tab-button:last-child {
+            border-right: none;
+        }
+        
+        /* 内部黑色半透明卡片 */
+        .bg-black.bg-opacity-10.rounded-lg {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .bg-black.bg-opacity-10.rounded-lg:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 分隔线样式 */
+        .divide-y > * {
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left text-primary"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">推广积分期数明细</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="px-4 pt-4">
+                <!-- 新增：补贴倒计时卡片 -->
+                <div class="mb-5 rounded-lg shadow-md" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); padding: 20px; box-shadow: 0 6px 16px rgba(224, 96, 0, 0.15);">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-white">距离下次补贴</h3>
+                        <span class="text-sm text-white font-medium">60%</span>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="progress-bar" style="background-color: rgba(255,255,255,0.3); box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); height: 12px;">
+                            <div class="progress-fill" style="width: 60%; background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,1)); box-shadow: 0 0 8px rgba(255,255,255,0.6);"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 积分类型Tab栏 -->
+                <div class="mb-5">
+                    <div class="flex bg-white rounded-lg overflow-hidden shadow-md">
+                        <div class="tab-button active flex-1 text-center py-3 font-medium cursor-pointer" data-tab="tuisong">
+                            直推/间推
+                        </div>
+                        <div class="tab-button flex-1 text-center py-3 font-medium cursor-pointer" data-tab="zhaoshang">
+                            招商
+                        </div>
+                        <div class="tab-button flex-1 text-center py-3 font-medium cursor-pointer" data-tab="quyu">
+                            区域
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 直推/间推Tab内容 -->
+                <div class="tab-content" id="tuisong-content">
+                    <!-- 所有期数合并为一个卡片 -->
+                    <div class="bg-white p-4 mb-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">推广积分期数列表</h3>
+                            <a class="text-primary flex items-center">
+                                <span>查看明细</span>
+                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                            </a>
+                        </div>
+                        
+                        <!-- 期数列表 -->
+                        <div class="divide-y">
+                            <!-- 期数1 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2024-10-01 至 2024-10-31</div>
+                                    <div class="text-xs px-2 py-1 bg-orange-50 text-orange-600 font-medium rounded">补贴中</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">100</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">100</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">100</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 期数2 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2024-09-01 至 2024-09-30</div>
+                                    <div class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">已完成</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">100</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">100</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">100</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 招商Tab内容 -->
+                <div class="tab-content hidden" id="zhaoshang-content">
+                    <!-- 所有期数合并为一个卡片 -->
+                    <div class="bg-white p-4 mb-5">
+                        <h3 class="text-lg font-semibold mb-4">招商积分期数列表</h3>
+                        
+                        <!-- 期数列表 -->
+                        <div class="divide-y">
+                            <!-- 期数1 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2023-01-01 至 2023-01-31</div>
+                                    <div class="text-xs px-2 py-1 bg-orange-50 text-orange-600 font-medium rounded">补贴中</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">3,800</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">19,000</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">19,000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 期数2 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2023-02-01 至 2023-02-28</div>
+                                    <div class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">已完成</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">4,200</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">12,600</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">12,600</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 区域Tab内容 -->
+                <div class="tab-content hidden" id="quyu-content">
+                    <!-- 所有期数合并为一个卡片 -->
+                    <div class="bg-white p-4 mb-5">
+                        <h3 class="text-lg font-semibold mb-4">区域积分期数列表</h3>
+                        
+                        <!-- 期数列表 -->
+                        <div class="divide-y">
+                            <!-- 期数1 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2023-01-01 至 2023-01-31</div>
+                                    <div class="text-xs px-2 py-1 bg-orange-50 text-orange-600 font-medium rounded">补贴中</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">5,600</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">28,000</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">28,000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 期数2 -->
+                            <div class="period-item">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="text-sm text-gray-500">2023-02-01 至 2023-02-28</div>
+                                    <div class="text-xs px-2 py-1 bg-gray-100 text-gray-500 rounded">已完成</div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500">积分</div>
+                                        <div class="font-bold">6,800</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">补贴</div>
+                                        <div class="font-bold">20,400</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">次数</div>
+                                        <div class="font-bold">1</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500">累计补贴</div>
+                                        <div class="font-bold text-primary">20,400</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab 切换脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有激活状态
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    
+                    // 激活当前选中的标签页
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + '-content').classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

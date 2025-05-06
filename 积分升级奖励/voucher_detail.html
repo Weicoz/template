@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>推广购物券明细</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 - 更加精致的阴影层次 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.05), 0 2px 6px rgba(0,0,0,0.06);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04);
+            
+            /* 精致描边颜色 */
+            --border-light: rgba(0,0,0,0.05);
+            --border-medium: rgba(0,0,0,0.08);
+            --border-primary-light: rgba(255,135,36,0.2);
+            --border-primary-medium: rgba(255,135,36,0.3);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            background-color: var(--level-1-bg);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 10px 20px rgba(0,0,0,0.04);
+        }
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03), 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        /* 增强标签图标效果 */
+        .tab-item i {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .tab-item.active i {
+            transform: translateY(-2px);
+        }
+        
+        .tab-item.active i:after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.7;
+            box-shadow: 0 0 4px rgba(255, 135, 36, 0.3);
+        }
+        
+        /* 改进导航栏的返回按钮 */
+        .nav-bar button {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--level-1-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+        }
+        
+        .nav-bar button:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        
+        .text-primary {
+            color: var(--primary-color);
+            position: relative;
+        }
+        
+        /* 文字渐变效果 */
+        .font-bold.text-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+        
+        .tab-button {
+            position: relative;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            background-color: white;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .voucher-item {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .voucher-item:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        .divider-gradient {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 12px 0;
+        }
+        
+        /* 顶部卡片优化 */
+        .bg-primary.rounded-lg.p-4.mb-5.shadow {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            box-shadow: 0 8px 20px rgba(224, 96, 0, 0.15), 0 2px 8px rgba(224, 96, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 为第一个卡片添加微妙的装饰元素 */
+        .bg-primary.rounded-lg.p-4.mb-5.shadow::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .bg-primary.rounded-lg.p-4.mb-5.shadow::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        /* 内部黑色半透明卡片 */
+        .bg-black.bg-opacity-10.rounded-lg {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .bg-black.bg-opacity-10.rounded-lg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 优化白色卡片 */
+        .bg-white.rounded-lg.mb-4.p-3.shadow {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .bg-white.rounded-lg.mb-4.p-3.shadow:hover {
+            box-shadow: var(--shadow-dark);
+            border-color: var(--border-medium);
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left text-primary"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">推广购物券明细</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="p-4">
+                <!-- 当前可用购物券 -->
+                <div class="bg-primary rounded-lg p-4 mb-5 shadow">
+                    <div class="text-center mb-3">
+                        <div class="text-white text-sm opacity-90">累计推广获得购物券</div>
+                        <div class="text-3xl font-bold text-white mt-1">¥ 9,650</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-black bg-opacity-10 rounded-lg p-2">
+                            <div class="text-white text-sm opacity-90">本月获得</div>
+                            <div class="font-bold text-white">¥ 3,600</div>
+                        </div>
+                        <div class="bg-black bg-opacity-10 rounded-lg p-2">
+                            <div class="text-white text-sm opacity-90">上月获得</div>
+                            <div class="font-bold text-white">¥ 6,050</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 日期 -->
+                <div class="text-sm text-gray-500 mb-3">2023年7月</div>
+                
+                <!-- 明细列表 - 只保留获得类型 -->
+                <div class="voucher-item bg-white rounded-lg mb-4 p-3 shadow">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <div class="font-medium">获得购物券</div>
+                            <div class="text-xs text-gray-500">2023-07-25 00:00</div>
+                        </div>
+                        <div class="text-primary font-bold">+¥ 2,500</div>
+                    </div>
+                    <div class="text-xs text-gray-500">积分期数: 2023-07-01至2023-07-31 直推/间推</div>
+                </div>
+                
+                <div class="voucher-item bg-white rounded-lg mb-4 p-3 shadow">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <div class="font-medium">获得购物券</div>
+                            <div class="text-xs text-gray-500">2023-07-15 16:30</div>
+                        </div>
+                        <div class="text-primary font-bold">+¥ 1,100</div>
+                    </div>
+                    <div class="text-xs text-gray-500">积分期数: 2023-07-01至2023-07-31 招商</div>
+                </div>
+                
+                <!-- 日期 -->
+                <div class="text-sm text-gray-500 mb-3">2023年6月</div>
+                
+                <div class="voucher-item bg-white rounded-lg mb-4 p-3 shadow">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <div class="font-medium">获得购物券</div>
+                            <div class="text-xs text-gray-500">2023-06-18 14:22</div>
+                        </div>
+                        <div class="text-primary font-bold">+¥ 3,850</div>
+                    </div>
+                    <div class="text-xs text-gray-500">积分期数: 2023-06-01至2023-06-30 区域</div>
+                </div>
+                
+                <div class="voucher-item bg-white rounded-lg mb-4 p-3 shadow">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <div class="font-medium">获得购物券</div>
+                            <div class="text-xs text-gray-500">2023-06-05 09:30</div>
+                        </div>
+                        <div class="text-primary font-bold">+¥ 2,200</div>
+                    </div>
+                    <div class="text-xs text-gray-500">积分期数: 2023-06-01至2023-06-30 直推/间推</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

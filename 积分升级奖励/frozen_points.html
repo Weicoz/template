@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冻结积分记录</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 - 更加精致的阴影层次 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.05), 0 2px 6px rgba(0,0,0,0.06);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04);
+            
+            /* 精致描边颜色 */
+            --border-light: rgba(0,0,0,0.05);
+            --border-medium: rgba(0,0,0,0.08);
+            --border-primary-light: rgba(255,135,36,0.2);
+            --border-primary-medium: rgba(255,135,36,0.3);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            background-color: var(--level-1-bg);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 10px 20px rgba(0,0,0,0.04);
+        }
+        
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+        }
+        
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03), 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        
+        /* 增强标签图标效果 */
+        .tab-item i {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .tab-item.active i {
+            transform: translateY(-2px);
+        }
+        
+        .tab-item.active i:after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.7;
+            box-shadow: 0 0 4px rgba(255, 135, 36, 0.3);
+        }
+        
+        /* 改进导航栏的返回按钮 */
+        .nav-bar button {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--level-1-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+        }
+        
+        .nav-bar button:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        
+        /* 文字颜色和渐变效果 */
+        .text-primary {
+            color: var(--primary-color);
+        }
+        
+        .font-bold.text-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        
+        /* 记录项目样式 */
+        .record-item {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .record-item:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        
+        /* 分隔线样式 */
+        .divider-gradient {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 12px 0;
+        }
+        
+        /* 增加标签切换样式 */
+        .tab-button {
+            position: relative;
+            transition: all 0.3s;
+            overflow: hidden;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background-color: rgba(255, 135, 36, 0.05);
+        }
+        
+        .tab-content {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.hidden {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4" onclick="window.location.href='level.html'">
+                <i class="fas fa-chevron-left text-primary"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">冻结积分记录</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="p-4">
+                <!-- 顶部积分卡片 -->
+                <div class="rounded-lg p-4 mb-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; box-shadow: 0 6px 16px rgba(224, 96, 0, 0.15);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold">冻结积分信息</h2>
+                        <div class="text-xs opacity-80">更新时间：2023-07-15</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-black bg-opacity-25 rounded-lg p-3">
+                            <p class="text-sm mb-1 opacity-90">当前冻结积分</p>
+                            <p class="text-xl font-bold">320,000</p>
+                        </div>
+                        <div class="bg-black bg-opacity-25 rounded-lg p-3">
+                            <p class="text-sm mb-1 opacity-90">累计已消耗</p>
+                            <p class="text-xl font-bold">180,000</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="flex justify-between mb-1 text-sm">
+                            <span>积分消耗进度</span>
+                            <span>36%</span>
+                        </div>
+                        <div class="h-2 bg-black bg-opacity-20 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full" style="width: 36%; background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,1)); box-shadow: 0 0 8px rgba(255,255,255,0.6);"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm">
+                        <span>累计获得：500,000</span>
+                        <span>V4等级会员</span>
+                    </div>
+                </div>
+                
+                <!-- 积分类型选择标签 -->
+                <div class="mb-5">
+                    <div class="flex bg-white rounded-lg overflow-hidden shadow-md">
+                        <div class="tab-button active flex-1 text-center py-3 font-medium cursor-pointer" data-tab="all">
+                            全部记录
+                        </div>
+                        <div class="tab-button flex-1 text-center py-3 font-medium cursor-pointer" data-tab="income">
+                            获得记录
+                        </div>
+                        <div class="tab-button flex-1 text-center py-3 font-medium cursor-pointer" data-tab="expense">
+                            消耗记录
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 全部记录 Tab 内容 -->
+                <div class="tab-content" id="all-content">
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年7月</div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">每日签到奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-15 08:30</div>
+                                </div>
+                                <div class="text-primary font-bold">+100</div>
+                            </div>
+                            <div class="text-xs text-gray-500">签到获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-07-14 15:45</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-5,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">每日签到奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-14 09:15</div>
+                                </div>
+                                <div class="text-primary font-bold">+100</div>
+                            </div>
+                            <div class="text-xs text-gray-500">签到获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-5 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">等级升级奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-10 14:20</div>
+                                </div>
+                                <div class="text-primary font-bold">+80,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">升级到V4等级获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年6月</div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-06-30 16:30</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-10,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">等级升级奖励</div>
+                                    <div class="text-xs text-gray-500">2023-06-15 10:30</div>
+                                </div>
+                                <div class="text-primary font-bold">+40,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">升级到V3等级获得冻结积分</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 获得记录 Tab 内容 -->
+                <div class="tab-content hidden" id="income-content">
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年7月</div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">每日签到奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-15 08:30</div>
+                                </div>
+                                <div class="text-primary font-bold">+100</div>
+                            </div>
+                            <div class="text-xs text-gray-500">签到获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">每日签到奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-14 09:15</div>
+                                </div>
+                                <div class="text-primary font-bold">+100</div>
+                            </div>
+                            <div class="text-xs text-gray-500">签到获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-5 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">等级升级奖励</div>
+                                    <div class="text-xs text-gray-500">2023-07-10 14:20</div>
+                                </div>
+                                <div class="text-primary font-bold">+80,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">升级到V4等级获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年6月</div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">等级升级奖励</div>
+                                    <div class="text-xs text-gray-500">2023-06-15 10:30</div>
+                                </div>
+                                <div class="text-primary font-bold">+40,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">升级到V3等级获得冻结积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 获得记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">新用户注册奖励</div>
+                                    <div class="text-xs text-gray-500">2023-06-01 09:00</div>
+                                </div>
+                                <div class="text-primary font-bold">+300,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">新用户注册获得冻结积分</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 消耗记录 Tab 内容 -->
+                <div class="tab-content hidden" id="expense-content">
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年7月</div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-07-14 15:45</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-5,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 日期分组 -->
+                    <div class="text-sm text-gray-500 mb-3">2023年6月</div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-06-30 16:30</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-10,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-06-15 14:30</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-15,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 消耗记录项 -->
+                    <div class="record-item bg-white rounded-lg mb-3 shadow-md">
+                        <div class="p-3">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <div class="font-medium">购物积分转换</div>
+                                    <div class="text-xs text-gray-500">2023-06-05 11:15</div>
+                                </div>
+                                <div class="text-red-500 font-bold">-150,000</div>
+                            </div>
+                            <div class="text-xs text-gray-500">冻结积分消耗转换为购物积分</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab 切换脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有激活状态
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.add('hidden'));
+                    
+                    // 激活当前选中的标签页
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + '-content').classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

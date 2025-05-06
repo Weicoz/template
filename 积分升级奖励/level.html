@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份等级与任务升级</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #FF8724;
+            --primary-light: #FFF0E6;
+            --primary-dark: #E06000;
+            
+            /* 纯白色背景 */
+            --level-1-bg: #FFFFFF;    /* 第一级：纯白色背景 */
+            --level-2-bg: #FFFFFF;    /* 第二级：也使用纯白色 */
+            --level-3-bg: #FAFAFA;    /* 第三级：非常浅的灰色，几乎是白色 */
+            
+            /* 增强阴影效果，更好地凸显层次感 - 更加精致的阴影层次 */
+            --shadow-light: 0 2px 5px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-medium: 0 4px 10px rgba(0,0,0,0.05), 0 2px 6px rgba(0,0,0,0.06);
+            --shadow-dark: 0 8px 16px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.04);
+            
+            /* 精致描边颜色 */
+            --border-light: rgba(0,0,0,0.05);
+            --border-medium: rgba(0,0,0,0.08);
+            --border-primary-light: rgba(255,135,36,0.2);
+            --border-primary-medium: rgba(255,135,36,0.3);
+            
+            /* 卡片间距 */
+            --card-gap: 16px;
+            
+            /* 新增10个从浅到深的颜色 */
+            --level-color-1: #FFE8D6; /* 最浅 */
+            --level-color-2: #FFD5B3;
+            --level-color-3: #FFBE8A;
+            --level-color-4: #FFA75F;
+            --level-color-5: #FF8724; /* 主色 */
+            --level-color-6: #F67D20;
+            --level-color-7: #E07016;
+            --level-color-8: #CC6410;
+            --level-color-9: #B85809;
+            --level-color-10: #A24E00; /* 最深 */
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--level-1-bg);
+        }
+        
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            background-color: var(--level-1-bg);
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 10px 20px rgba(0,0,0,0.04);
+        }
+        .status-bar {
+            height: 44px;
+            background-color: var(--level-1-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: var(--shadow-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .nav-bar {
+            height: 60px;
+            background-color: var(--level-1-bg);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .tab-bar {
+            height: 83px;
+            background-color: var(--level-1-bg);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: fixed;
+            bottom: 0;
+            width: 375px;
+            z-index: 10;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03), 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        .content-area {
+            position: absolute;
+            top: 104px; /* 状态栏 + 导航栏高度 */
+            bottom: 83px; /* 底部标签栏高度 */
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: var(--level-1-bg);
+            padding-top: 12px;
+            padding-bottom: 83px; /* 添加底部内边距，防止内容被遮挡 */
+            scroll-behavior: smooth; /* 平滑滚动效果 */
+        }
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            font-size: 10px;
+        }
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+        .level-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+            position: relative;
+            z-index: 1;
+            /* 优雅描边效果 */
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        
+        /* 增强徽章效果 */
+        .level-badge::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.6;
+            filter: blur(4px);
+            z-index: -1;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .level-progress {
+            height: 8px;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            position: relative;
+            /* 精致的内嵌描边 */
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .level-progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            background-color: #FFFFFF;
+            box-shadow: 0 0 8px rgba(255,255,255,0.7), 0 0 4px rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+            /* 内发光描边 */
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        
+        /* 闪光效果 */
+        .level-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0) 100%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 200%;
+            }
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            position: relative;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+        .task-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-color: var(--border-medium);
+        }
+        .task-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            margin-right: 8px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .task-dot.completed {
+            background-color: #4caf50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        .task-dot.current {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(255, 135, 36, 0.4);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        .level-card {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 12px;
+            margin: 0 8px;
+            box-shadow: var(--shadow-medium);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            /* 优雅的卡片描边 */
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        
+        /* 卡片装饰元素 */
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,135,36,0.05) 0%, rgba(255,135,36,0) 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .level-card:hover, .level-card.active {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        .level-card:last-of-type:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: #ddd;
+        }
+        /* 滑动容器相关样式 */
+        .level-slider-container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding: 20px 0;
+            background-color: var(--level-1-bg);
+            border-radius: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 90%, rgba(255,135,36,0.03) 0%, rgba(255,255,255,0) 20%),
+                radial-gradient(circle at 90% 10%, rgba(255,135,36,0.03) 0%, rgba(255,255,255,0) 20%);
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-light);
+        }
+        .level-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            padding: 8px 16px;
+        }
+        .level-slider::-webkit-scrollbar {
+            display: none;
+        }
+        /* 分页指示器 */
+        .pagination-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin: 0 4px;
+            transition: all 0.3s ease;
+            /* 添加精细的描边 */
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .dot.active {
+            background-color: var(--primary-color);
+            width: 16px;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(255,135,36,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        /* 滑动箭头 */
+        .arrow-left, .arrow-right {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            /* 精致的箭头描边 */
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .arrow-left:hover, .arrow-right:hover {
+            box-shadow: 0 5px 12px rgba(0,0,0,0.12), 0 2px 5px rgba(0,0,0,0.08);
+            border-color: var(--border-primary-light);
+        }
+        .arrow-left {
+            left: 4px;
+        }
+        .arrow-right {
+            right: 4px;
+        }
+        .level-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .level-details {
+            padding: 4px 0;
+        }
+        /* 橘色主题色调 */
+        .text-primary {
+            color: var(--primary-color);
+            position: relative;
+        }
+        /* 文字渐变效果 */
+        .font-bold.text-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .bg-primary {
+            background-color: var(--primary-color);
+        }
+        .bg-primary-light {
+            background-color: var(--level-1-bg);
+            border-left: 3px solid var(--primary-color);
+            box-shadow: var(--shadow-light);
+            border-radius: 8px;
+            /* 增加一个精致的顶部和底部边框 */
+            border-top: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+        /* 卡片使用第一级背景，带投影 */
+        .bg-white {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            border-radius: 16px;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            margin-bottom: var(--card-gap);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+        .bg-white:hover {
+            box-shadow: var(--shadow-dark);
+            border-color: var(--border-medium);
+        }
+        /* 卡片内部特殊区域使用第三级背景 */
+        .text-xs.text-gray-500.bg-gray-50 {
+            background-color: var(--level-3-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
+        }
+        /* 强化等级卡片的层次感 */
+        .level-card {
+            background-color: var(--level-1-bg);
+            box-shadow: var(--shadow-medium);
+            transition: box-shadow 0.2s, border-color 0.2s;
+            border: 1px solid var(--border-light);
+        }
+        .level-card.active {
+            box-shadow: var(--shadow-dark);
+            border: 1px solid var(--border-primary-medium);
+        }
+        /* 使滑动区域背景也保持白色 */
+        .level-slider-container {
+            background-color: var(--level-1-bg);
+            padding: 20px 0;
+        }
+        /* 优化权重值卡片设计 */
+        .p-2.bg-primary-light {
+            background-color: var(--level-1-bg);
+            border-left: 3px solid var(--primary-color);
+            box-shadow: var(--shadow-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+        }
+        /* 分隔线样式，增加微妙的分隔效果 */
+        .separator {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 8px 0;
+        }
+        /* 底部标签栏增强 */
+        .tab-bar {
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03), 0 -1px 3px rgba(0,0,0,0.02);
+        }
+        /* 导航栏增强 */
+        .nav-bar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+        }
+        
+        /* 为低等级设置浅色背景深色文字 */
+        .level-badge-1 {
+            background-color: var(--level-color-1);
+            color: var(--level-color-10);
+            border: 1px solid rgba(162, 78, 0, 0.2);
+        }
+        .level-badge-2 {
+            background-color: var(--level-color-2);
+            color: var(--level-color-9);
+            border: 1px solid rgba(184, 88, 9, 0.2);
+        }
+        .level-badge-3 {
+            background-color: var(--level-color-3);
+            color: var(--level-color-8);
+            border: 1px solid rgba(204, 100, 16, 0.2);
+        }
+        
+        /* 为高等级设置深色背景白色文字 */
+        .level-badge-4 {
+            background-color: var(--level-color-4);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-5 {
+            background-color: var(--level-color-5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-6 {
+            background-color: var(--level-color-6);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-7 {
+            background-color: var(--level-color-7);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-8 {
+            background-color: var(--level-color-8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-9 {
+            background-color: var(--level-color-9);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .level-badge-10 {
+            background-color: var(--level-color-10);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 新增高级效果样式 */
+        .divider-gradient {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0,0,0,0.05), transparent);
+            margin: 12px 0;
+        }
+        
+        /* 任务升级说明卡片微妙的纹理背景 */
+        .bg-white[style*="border-left: 4px solid"] {
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f9f9f9' fill-opacity='0.4'%3E%3Cpath d='M0 0h10v10H0zm10 10h10v10H10z'/%3E%3C/g%3E%3C/svg%3E");
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-medium), 0 0 0 1px rgba(255, 135, 36, 0.1);
+        }
+        
+        /* 区域补贴奖励卡片悬浮效果增强 */
+        .bg-white:last-of-type {
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+        
+        .bg-white:last-of-type:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.05);
+            border-color: var(--border-primary-light);
+        }
+        
+        /* 数字徽章增强 */
+        .inline-block.w-5.h-5.rounded-full.bg-primary {
+            position: relative;
+            box-shadow: 0 2px 4px rgba(255, 135, 36, 0.3), 0 0 0 1px rgba(255, 135, 36, 0.5);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .inline-block.w-5.h-5.rounded-full.bg-primary:hover {
+            box-shadow: 0 3px 6px rgba(255, 135, 36, 0.4), 0 0 0 1px rgba(255, 135, 36, 0.6);
+        }
+        
+        /* 改进导航栏的返回按钮 */
+        .nav-bar button {
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--level-1-bg);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+        }
+        
+        .nav-bar button:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+        
+        /* 增强标签图标效果 */
+        .tab-item i {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .tab-item.active i {
+            transform: translateY(-2px);
+        }
+        
+        .tab-item.active i:after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -5px;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.7;
+            box-shadow: 0 0 4px rgba(255, 135, 36, 0.3);
+        }
+        
+        /* 当前等级卡片顶部样式增强 */
+        .rounded-lg.p-4.mb-5[style*="background: linear-gradient"] {
+            box-shadow: 0 8px 20px rgba(224, 96, 0, 0.15), 0 2px 8px rgba(224, 96, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 当前等级卡片内部半透明卡片的描边效果 */
+        .bg-black.bg-opacity-25.rounded-lg {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 为统计数据块添加精致描边 */
+        .text-center.bg-black.bg-opacity-25.rounded-lg {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 精致的V级别颜色卡片 */
+        .p-2.rounded-lg[style*="background-color: var(--level-color"] {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="iphone-frame mx-auto">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>10:30</span>
+            <div class="flex space-x-2">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+        
+        <!-- 导航栏 -->
+        <div class="nav-bar">
+            <button class="mr-4">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <h1 class="text-lg font-bold flex-1 text-center">身份等级与任务</h1>
+            <div class="w-4"></div>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div class="content-area">
+            <div class="px-4 pt-4">
+                <!-- 当前等级卡片 -->
+                <div class="rounded-lg p-4 mb-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; box-shadow: 0 6px 16px rgba(224, 96, 0, 0.15);">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <div class="text-white text-sm opacity-90">当前等级</div>
+                            <div class="text-xl font-bold text-white">V4 普通会员</div>
+                        </div>
+                        <div class="level-badge bg-white text-primary">V4</div>
+                    </div>
+                    
+                    <!-- 冻结积分显示 -->
+                    <div class="flex items-center justify-between bg-black bg-opacity-25 rounded-lg p-3 mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-snowflake mr-2"></i>
+                            <span class="text-sm">冻结积分</span>
+                        </div>
+                        <div class="flex items-center cursor-pointer" onclick="window.location.href='frozen_points.html'">
+                            <div class="font-bold text-xl">320,000</div>
+                            <i class="fas fa-chevron-right ml-2 text-sm"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-1 flex justify-between text-sm text-white">
+                        <span>距离升级 V5</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="level-progress">
+                        <div class="level-progress-fill" style="width: 75%; background: linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,1)); box-shadow: 0 0 8px rgba(255,255,255,0.6);"></div>
+                    </div>
+                    
+                    <div class="mt-4 grid grid-cols-3 gap-2">
+                        <div class="text-center bg-black bg-opacity-25 rounded-lg p-2">
+                            <div class="text-sm text-white opacity-90">已推荐用户</div>
+                            <div class="font-bold text-white">6/8</div>
+                        </div>
+                        <div class="text-center bg-black bg-opacity-25 rounded-lg p-2">
+                            <div class="text-sm text-white opacity-90">消费金额</div>
+                            <div class="font-bold text-white">¥6,500/8,000</div>
+                        </div>
+                        <div class="text-center bg-black bg-opacity-25 rounded-lg p-2">
+                            <div class="text-sm text-white opacity-90">招商2位商家</div>
+                            <div class="font-bold text-white">1/2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 任务等级卡片 -->
+                <div class="mb-5">
+                    <h2 class="font-bold mb-3 px-4 text-primary">任务等级详情</h2>
+                    
+                    <div class="level-slider-container rounded-lg" style="box-shadow: var(--shadow-medium);">
+                        <div class="arrow-left" onclick="slideLeft()">
+                            <i class="fas fa-chevron-left text-primary"></i>
+                        </div>
+                        
+                        <div class="level-slider" id="levelSlider">
+                            <!-- V1 等级卡片 -->
+                            <div class="level-card" id="card-1">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-1 mr-3">V1</div>
+                                    <div class="font-medium">初级会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计推荐1名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到1000</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">赠送1万冻结积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V2 等级卡片 -->
+                            <div class="level-card" id="card-2">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-2 mr-3">V2</div>
+                                    <div class="font-medium">进阶会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计推荐2名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到2000</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">赠送2万冻结积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V3 等级卡片 -->
+                            <div class="level-card" id="card-3">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-3 mr-3">V3</div>
+                                    <div class="font-medium">中级会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计推荐4名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到4000</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">赠送4万冻结积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V4 等级卡片（当前等级） -->
+                            <div class="level-card active" id="card-4">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-4 mr-3">V4</div>
+                                    <div class="font-medium">高级会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot completed"></div>
+                                        <div class="text-sm font-medium">累计推荐8名有效用户（6/8）</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot current"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到8000（6500/8000）</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送8万冻结积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V5 等级卡片 -->
+                            <div class="level-card" id="card-5">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-5 mr-3">V5</div>
+                                    <div class="font-medium">资深会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐16名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到16000</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送16万冻结积分</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V6 等级卡片 -->
+                            <div class="level-card" id="card-6">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-6 mr-3">V6</div>
+                                    <div class="font-medium">钻石会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐32名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到32000</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送24万冻结积分</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium text-primary">获得区域补贴积分释放权益</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V7 等级卡片 -->
+                            <div class="level-card" id="card-7">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-7 mr-3">V7</div>
+                                    <div class="font-medium">皇冠会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐64名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到64000</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送48万冻结积分</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium text-primary">获得区域补贴积分释放权益</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V8 等级卡片 -->
+                            <div class="level-card" id="card-8">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-8 mr-3">V8</div>
+                                    <div class="font-medium">荣耀会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐128名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到128000</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送96万冻结积分</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium text-primary">获得区域补贴积分释放权益</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V9 等级卡片 -->
+                            <div class="level-card" id="card-9">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-9 mr-3">V9</div>
+                                    <div class="font-medium">至尊会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐256名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到256000</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送192万冻结积分</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium text-primary">获得区域补贴积分释放权益</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- V10 等级卡片 -->
+                            <div class="level-card" id="card-10">
+                                <div class="level-header">
+                                    <div class="level-badge level-badge-10 mr-3">V10</div>
+                                    <div class="font-medium">创世会员</div>
+                                </div>
+                                <div class="level-details">
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计推荐512名有效用户</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">累计直推/自购消费达到512000</div>
+                                    </div>
+                                    <div class="task-item pb-3">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium">赠送384万冻结积分</div>
+                                    </div>
+                                    <div class="task-item">
+                                        <div class="task-dot"></div>
+                                        <div class="text-sm font-medium text-primary">获得区域补贴积分释放权益</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="arrow-right" onclick="slideRight()">
+                            <i class="fas fa-chevron-right text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- 分页指示器 -->
+                    <div class="pagination-dots" id="pagination">
+                        <div class="dot" data-index="0"></div>
+                        <div class="dot" data-index="1"></div>
+                        <div class="dot" data-index="2"></div>
+                        <div class="dot active" data-index="3"></div>
+                        <div class="dot" data-index="4"></div>
+                        <div class="dot" data-index="5"></div>
+                        <div class="dot" data-index="6"></div>
+                        <div class="dot" data-index="7"></div>
+                        <div class="dot" data-index="8"></div>
+                        <div class="dot" data-index="9"></div>
+                    </div>
+                </div>
+                
+                <!-- 任务升级说明 -->
+                <div class="bg-white rounded-lg p-4 mb-5" style="border-left: 4px solid var(--primary-color);">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-info-circle text-primary mr-2 text-xl"></i>
+                        <div class="font-medium text-primary">任务升级说明</div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex items-start mb-2">
+                            <span class="inline-block w-5 h-5 rounded-full bg-primary flex-shrink-0 text-white text-xs flex items-center justify-center mr-2">1</span>
+                            <p>用户注册赠送 <span class="text-primary font-medium">30万</span> 冻结积分</p>
+                        </div>
+                        <div class="flex items-start mb-2">
+                            <span class="inline-block w-5 h-5 rounded-full bg-primary flex-shrink-0 text-white text-xs flex items-center justify-center mr-2">2</span>
+                            <p>每日签到赠送 <span class="text-primary font-medium">100</span> 冻结积分</p>
+                        </div>
+                        <div class="flex items-start mb-2">
+                            <span class="inline-block w-5 h-5 rounded-full bg-primary flex-shrink-0 text-white text-xs flex items-center justify-center mr-2">3</span>
+                            <p>完成任务升级可获得额外冻结积分</p>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="inline-block w-5 h-5 rounded-full bg-primary flex-shrink-0 text-white text-xs flex items-center justify-center mr-2">4</span>
+                            <p>达到V6及以上等级可获得区域补贴积分释放权益</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 区域补贴奖励说明 -->
+                <div class="bg-white rounded-lg p-4 mb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="font-medium">区域补贴奖励</div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600 mb-4">
+                        <p>达到V6及以上等级的用户可额外获得区域奖励积分，获得数量随等级提升而增加。</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-5 gap-2 text-center text-xs mb-4">
+                        <div class="p-2 rounded-lg" style="background-color: var(--level-color-6); color: white;">
+                            <div class="level-badge bg-white text-primary mx-auto mb-1">V6</div>
+                        </div>
+                        <div class="p-2 rounded-lg" style="background-color: var(--level-color-7); color: white;">
+                            <div class="level-badge bg-white text-primary mx-auto mb-1">V7</div>
+                        </div>
+                        <div class="p-2 rounded-lg" style="background-color: var(--level-color-8); color: white;">
+                            <div class="level-badge bg-white text-primary mx-auto mb-1">V8</div>
+                        </div>
+                        <div class="p-2 rounded-lg" style="background-color: var(--level-color-9); color: white;">
+                            <div class="level-badge bg-white text-primary mx-auto mb-1">V9</div>
+                        </div>
+                        <div class="p-2 rounded-lg" style="background-color: var(--level-color-10); color: white;">
+                            <div class="level-badge bg-white text-primary mx-auto mb-1">V10</div>
+                    </div>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span>首页</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-shopping-bag text-lg mb-1"></i>
+                <span>商城</span>
+            </div>
+            <div class="tab-item active">
+                <i class="fas fa-coins text-lg mb-1 text-primary"></i>
+                <span class="text-primary">积分</span>
+            </div>
+            <div class="tab-item">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span>我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 滑动卡片相关逻辑
+        const slider = document.getElementById('levelSlider');
+        const cards = slider.querySelectorAll('.level-card');
+        const dots = document.querySelectorAll('.dot');
+        let currentIndex = 3; // 默认V4是当前等级
+        
+        // 初始化显示当前卡片
+        scrollToCard(currentIndex);
+        
+        // 监听滚动事件
+        slider.addEventListener('scroll', function() {
+            updateActiveDot();
+        });
+        
+        // 为每个点添加点击事件
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                scrollToCard(index);
+            });
+        });
+        
+        // 左右滑动
+        function slideLeft() {
+            if (currentIndex > 0) {
+                scrollToCard(currentIndex - 1);
+            }
+        }
+        
+        function slideRight() {
+            if (currentIndex < cards.length - 1) {
+                scrollToCard(currentIndex + 1);
+            }
+        }
+        
+        // 滚动到指定卡片
+        function scrollToCard(index) {
+            currentIndex = index;
+            const card = cards[index];
+            const sliderRect = slider.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            
+            // 计算滚动位置，使卡片居中
+            const scrollLeft = card.offsetLeft - (sliderRect.width / 2) + (cardRect.width / 2);
+            
+            slider.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth'
+            });
+            
+            updateActiveDot();
+        }
+        
+        // 更新活动点
+        function updateActiveDot() {
+            // 根据滚动位置计算当前卡片索引
+            const scrollLeft = slider.scrollLeft;
+            const cardWidth = cards[0].offsetWidth + 12; // 卡片宽度+边距
+            currentIndex = Math.round(scrollLeft / cardWidth);
+            
+            // 更新点的状态
+            dots.forEach((dot, i) => {
+                if (i === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // 更新卡片的活动状态
+            cards.forEach((card, i) => {
+                if (i === currentIndex) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+        
+        // 添加触摸滑动支持
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        slider.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        slider.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const threshold = 50; // 最小滑动距离
+            if (touchEndX < touchStartX - threshold) {
+                // 向左滑动
+                slideRight();
+            } else if (touchEndX > touchStartX + threshold) {
+                // 向右滑动
+                slideLeft();
+            }
+        }
+    </script>
+</body>
+</html> 
